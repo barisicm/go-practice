@@ -1,0 +1,1 @@
+package fun_with_adapter

@@ -1,0 +1,29 @@
+{
+    "sqltools.connections": [
+        {
+            "askForPassword": false,
+            "database": "miyagi-backup",
+            "driver": "PostgreSQL",
+            "name": "TestDB",
+            "password": "postgres",
+            "port": 5433,
+            "previewLimit": 50,
+            "server": "localhost",
+            "username": "postgres"
+        },
+        {
+            "askForPassword": false,
+            "database": "miyagi",
+            "driver": "PostgreSQL",
+            "name": "DockerLocalDb",
+            "password": "miyagi",
+            "port": 7654,
+            "previewLimit": 50,
+            "server": "localhost",
+            "username": "miyagi"
+        }
+    ],
+    "[sql]": {
+        "editor.formatOnSave": false
+    },
+}
