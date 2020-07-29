@@ -1,0 +1,7 @@
+BEGIN;
+
+
+DROP TABLE IF EXISTS platform;
+DROP SCHEMA IF EXISTS "pkger_fun" CASCADE;
+
+COMMIT;

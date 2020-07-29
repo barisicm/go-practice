@@ -1,0 +1,9 @@
+BEGIN;
+
+CREATE SCHEMA IF NOT EXISTS "pkger_fun";
+CREATE TABLE IF NOT EXISTS users (
+    "id" SERIAL PRIMARY KEY,
+    "name" text NOT NULL UNIQUE
+);
+
+COMMIT;

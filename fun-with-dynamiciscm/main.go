@@ -6,15 +6,21 @@ func main() {
 	row := 3
 	// col := 3
 
-	a := make([][]int, row)
+	a := make([][]string, row)
+	b := [][]string{
+		{"testtest2"},
+		{"test", "tttt"},
+		{"test", "tttt", "teaet"},
+	}
 	// for i := range a {
 	// 	a[i] = make([]int, col)
 	// }
 
 	fmt.Println(a)
+	fmt.Println(b)
 
-	tryOther()
-	tryMoreOfTheOther()
+	// tryOther()
+	// tryMoreOfTheOther()
 }
 
 func tryOther() {
