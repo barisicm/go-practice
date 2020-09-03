@@ -3,71 +3,89 @@ package main
 import (
 	"fmt"
 	"reflect"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
-	oldUser := user{ID: 0, Name: "Stjepan"}
-	newUser := user{ID: 0, Name: "Marin"}
+	oldUser := user{ID: 0, Name: "Stjepan", IntArray: []int{2, 3, 4, 5}, StringArray: []string{"burek", "ćevapi"}}
+	newUser := user{ID: 0, Name: "Marin", IntArray: []int{2, 3, 4}, StringArray: []string{"burek", "ćevapii"}}
 
-	_, _ = doMeADiff(oldUser, newUser)
+	diffStuff, _ := doMeADiff(oldUser, newUser)
+
+	fmt.Println(diffStuff.old["ID"])
+	fmt.Println(diffStuff.old["Name"])
+	fmt.Println(diffStuff.old["IntArray"])
+	fmt.Println(diffStuff.old["StringArray"])
+
+	fmt.Println(diffStuff.new["ID"])
+	fmt.Println(diffStuff.new["Name"])
+	fmt.Println(diffStuff.new["IntArray"])
+	fmt.Println(diffStuff.new["StringArray"])
 }
 
 func doMeADiff(old interface{}, new interface{}) (diff, error) {
-	//check if diff items are structs
-	if reflect.ValueOf(old).Kind() != reflect.Struct || reflect.ValueOf(new).Kind() != reflect.Struct {
-		fmt.Println("everything went to shit")
-		fmt.Println("diff items are not structs, go away")
+	resDiff := diff{
+		old: make(map[string]interface{}),
+		new: make(map[string]interface{}),
 	}
-	//check if diff items contain same structs
-	if reflect.TypeOf(old) != reflect.TypeOf(new) {
-		fmt.Println("everything went to shit")
-		fmt.Println("diff items are not the same structs, go away")
-	}
-	//check if objects have the same number of fields
-	if reflect.ValueOf(old).NumField() != reflect.ValueOf(new).NumField() {
-		fmt.Println("everything went to shit")
-		fmt.Println("diff items have different amount of fields, go away")
+
+	err := checkDiffItemValidity(old, new)
+	if err != nil {
+		return resDiff, err
 	}
 
 	//iterate over struct fields
 	for fieldIndex := 0; fieldIndex < reflect.ValueOf(old).NumField(); fieldIndex++ {
-		//is this check really neccesary ?
-		if reflect.TypeOf(reflect.ValueOf(old).Field(fieldIndex)) != reflect.TypeOf(reflect.ValueOf(new).Field(fieldIndex)) {
-			fmt.Println("everything went to shit")
-			fmt.Printf("\n field type at element %v, is not the same in the old and new struct \n", fieldIndex)
+
+		oldFieldValue := reflect.ValueOf(old).Field(fieldIndex)
+		newFieldValue := reflect.ValueOf(new).Field(fieldIndex)
+		fieldType := reflect.TypeOf(old).Field(fieldIndex).Type.Kind()
+		fieldName := reflect.TypeOf(old).Field(fieldIndex).Name
+
+		// check if field is an array
+		if fieldType == reflect.Array || fieldType == reflect.Slice || fieldType == reflect.Map || fieldType == reflect.Struct || fieldType == reflect.Interface {
+			if !reflect.DeepEqual(oldFieldValue.Interface(), newFieldValue.Interface()) {
+				//write changes into old and new map
+				resDiff.old[fieldName] = oldFieldValue.Interface()
+				resDiff.new[fieldName] = newFieldValue.Interface()
+			}
+			continue
 		}
 
-		//TODO: Check for unexported fields ??
-		if reflect.ValueOf(old).Field(fieldIndex).Interface() != reflect.ValueOf(new).Field(fieldIndex).Interface() {
-			oldFieldVal := reflect.ValueOf(old).Field(fieldIndex).Interface()
-			newFieldVal := reflect.ValueOf(new).Field(fieldIndex).Interface()
-			fmt.Printf("\nvalues are not the same old: %v new: %v", oldFieldVal, newFieldVal)
+		if oldFieldValue.Interface() != newFieldValue.Interface() {
+			resDiff.old[fieldName] = oldFieldValue.Interface()
+			resDiff.new[fieldName] = newFieldValue.Interface()
 		}
 
-	}
-
-	//check if values are base values(int, string, float, bool)
-	//
-
-	//check if values are structs
-
-	//check if values are arrays
-
-	resDiff := diff{
-		old: make(map[string]interface{}),
-		new: make(map[string]interface{}),
 	}
 
 	return resDiff, nil
 }
 
 func checkDiffItemValidity(old interface{}, new interface{}) error {
+	//check if diff items are structs
+	if reflect.ValueOf(old).Kind() != reflect.Struct || reflect.ValueOf(new).Kind() != reflect.Struct {
+		return status.Error(codes.Internal, "diff items are not structs")
+	}
+	//check if diff items types are same structs
+	if reflect.TypeOf(old) != reflect.TypeOf(new) {
+		return status.Error(codes.Internal, "diff items are not the same structs")
+	}
+	//check if objects have the same number of fields
+	if reflect.ValueOf(old).NumField() != reflect.ValueOf(new).NumField() {
+		return status.Error(codes.Internal, "diff items have different amount of fields")
+	}
+
 	return nil
 }
 
 type user struct {
-	ID   int    ``
-	Name string ``
+	ID          int      ``
+	Name        string   ``
+	IntArray    []int    ``
+	StringArray []string ``
 }
 
 type diff struct {
